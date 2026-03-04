@@ -571,7 +571,7 @@ const exerciseRowStyle: React.CSSProperties = {
 }
 
 const planContainerStyle = (expanded: boolean): React.CSSProperties => ({
-  width: expanded ? 420 : 240,
+  width: expanded ? 360 : 240,
   transition: "all 0.3s ease",
   display: "flex",
   flexDirection: "column",
