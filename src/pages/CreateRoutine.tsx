@@ -491,7 +491,7 @@ const editableInputStyle: React.CSSProperties = {
 }
 
 const containerStyle: React.CSSProperties = {
-  width: "85%",
+  width: "100%",
   maxWidth: 400,
   display: "flex",
   flexDirection: "column",
