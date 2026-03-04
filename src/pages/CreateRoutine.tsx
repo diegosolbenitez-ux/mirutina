@@ -549,7 +549,7 @@ const nameInputStyle: React.CSSProperties = {
 }
 
 const smallInputStyle: React.CSSProperties = {
-  width: 60,
+  width: 40,
   height: 26,
   border: "1px solid #a3a3a3",
   borderRadius: 6,
