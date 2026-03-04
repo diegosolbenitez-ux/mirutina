@@ -502,7 +502,7 @@ const containerStyle: React.CSSProperties = {
 }
 
 const dayContainerStyle = (expanded: boolean): React.CSSProperties => ({
-  width: expanded ? 380 : 240,
+  width: expanded ? 420 : 240,
   transition: "all 0.3s ease",
   display: "flex",
   flexDirection: "column",
