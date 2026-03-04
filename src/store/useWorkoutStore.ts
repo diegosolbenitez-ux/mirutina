@@ -414,6 +414,20 @@ if (activeExerciseIds.length === 0) {
 
       /* ===== CREAR MEMORIA SI META ALCANZADA ===== */
 
+const startDate =
+  memories.length > 0
+    ? memories[memories.length - 1].date
+    : getTodayDate()
+
+const start = new Date(startDate)
+const end = new Date(getTodayDate())
+
+const diffDays =
+  Math.floor(
+    (end.getTime() - start.getTime()) /
+    (1000 * 60 * 60 * 24)
+  ) + 1
+
       const objectiveVolume =
         objectives.exercises.reduce(
           (total, ex) =>
@@ -454,13 +468,14 @@ if (
   !alreadySaved
 ) {
         const newMemory: ProgressMemory = {
-          id: generateId(),
-          date: getTodayDate(),
-          initialVolume,
-          objectiveVolume,
-          finalProgress: accumulated,
-          days: history.length + 1
-        }
+  id: generateId(),
+  date: getTodayDate(),
+  startDate,
+  days: diffDays,
+  initialVolume,
+  objectiveVolume,
+  finalProgress: accumulated
+}
 
         const updatedMemories = [
           ...memories,
