@@ -1,0 +1,95 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f2f2f2;
+  font-family: "IBM Plex Mono", monospace;
+  color: #111;
+}
+
+/* CONTENEDOR PRINCIPAL TIPO APP */
+.app-container {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 60px 30px 100px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* TITULOS */
+.title-large {
+  font-size: 42px;
+  font-weight: 600;
+}
+
+.title-medium {
+  font-size: 28px;
+}
+
+.title-small {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* BOTON NEGRO PRINCIPAL */
+.btn-primary {
+  background: #000;
+  color: white;
+  border: none;
+  padding: 18px;
+  font-size: 22px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+/* INPUT */
+.input-main {
+  width: 100%;
+  padding: 18px;
+  font-size: 18px;
+  border-radius: 14px;
+  border: 1.5px solid #111;
+  background: transparent;
+  outline: none;
+}
+
+/* BOTON FLECHA */
+.btn-arrow {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+}
+
+/* TARJETA DIA */
+.day-card {
+  border: 1.5px solid #111;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* NAV */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  margin-top: 60px;
+}
+@keyframes fillUp {
+  from {
+    background-size: 100% 0%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
