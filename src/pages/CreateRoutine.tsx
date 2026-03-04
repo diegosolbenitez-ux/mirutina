@@ -496,7 +496,7 @@ const containerStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: 30,
+  gap: 60,
   paddingTop: 40,
   fontFamily: "monospace"
 }
