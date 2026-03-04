@@ -542,6 +542,7 @@ const inputRowStyle: React.CSSProperties = {
 
 const nameInputStyle: React.CSSProperties = {
   flex: 3,
+  width: 80,
   border: "1px solid #a3a3a3",
   height: 26,
   borderRadius: 6,
