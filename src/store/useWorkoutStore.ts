@@ -97,9 +97,12 @@ export const useWorkoutStore =
       ) ?? defaultObjectives,
 
     memories:
-      JSON.parse(
-        localStorage.getItem("progress_memories") || "[]"
-      ),
+  (JSON.parse(
+    localStorage.getItem("progress_memories") || "[]"
+  ) || []).map((m: any) => ({
+    ...m,
+    startDate: m.startDate ?? m.date
+  })),
 
     /* ============================= */
     /* SET ROUTINE */
@@ -411,7 +414,10 @@ if (activeExerciseIds.length === 0) {
         completionPercentage,
         totalVolume
       }
-
+memories.map(m => ({
+  ...m,
+  startDate: m.startDate ?? m.date
+}))
       /* ===== CREAR MEMORIA SI META ALCANZADA ===== */
 
 const startDate =
