@@ -83,6 +83,7 @@ export type HistoryEntry = {
 
 export type ProgressMemory = {
   id: string
+  startDate: string
   date: string
   initialVolume: number
   objectiveVolume: number
