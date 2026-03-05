@@ -12,6 +12,8 @@ export default function Progress() {
   const [selectedMemoryId, setSelectedMemoryId] =
     useState<string | null>(null)
 
+  const [statsOpen, setStatsOpen] = useState(false)
+
   /* =========================
      HISTORIAL ORDENADO
   ========================== */
@@ -56,6 +58,27 @@ export default function Progress() {
     sortedMemories.find(
       m => m.id === selectedMemoryId
     )
+
+  /* =========================
+     STATS DESDE MEMORY
+  ========================== */
+
+ const exerciseStats = useMemo(() => {
+
+  if (!selectedMemory) return []
+
+  const exercises =
+    Array.isArray(selectedMemory.exercises)
+      ? selectedMemory.exercises
+      : []
+
+  return [...exercises].sort(
+    (a,b) =>
+      b.volumeContribution -
+      a.volumeContribution
+  )
+
+},[selectedMemory])
 
   return (
     <div style={containerStyle}>
@@ -127,9 +150,10 @@ export default function Progress() {
                     ? "2px solid black"
                     : "1px solid #000"
               }}
-              onClick={() =>
+              onClick={() => {
                 setSelectedMemoryId(memory.id)
-              }
+                setStatsOpen(false)
+              }}
             >
               <MiniCircle memory={memory} />
             </div>
@@ -140,6 +164,7 @@ export default function Progress() {
       {/* ================= DETALLE MEMORIA ================= */}
 
       {selectedMemory && (
+
         <div style={detailWrapperStyle}>
 
           <CircleProgress
@@ -157,15 +182,115 @@ export default function Progress() {
             <div>Objetivo {selectedMemory.objectiveVolume}</div>
           </div>
 
+          {/* ================= BOTON STATS ================= */}
+
+          <div
+            style={statsToggleStyle}
+            onClick={() => setStatsOpen(!statsOpen)}
+          >
+            <span>Stats</span>
+            <span>{statsOpen ? "˄" : "˅"}</span>
+          </div>
+
+          {/* ================= PANEL STATS ================= */}
+
+          {statsOpen && (
+
+            <div style={statsBoxStyle}>
+
+              {exerciseStats.length === 0 && (
+                <div>No hay ejercicios</div>
+              )}
+
+              {exerciseStats.map(ex => (
+
+                <div
+                  key={ex.name}
+                  style={{ marginBottom: 18 }}
+                >
+
+                  <div style={statsRowStyle}>
+                    <span>{ex.name}</span>
+                    <span>
+                      {ex.initialMax} → {ex.finalMax}
+                    </span>
+                  </div>
+
+                  <StrengthBar
+                    initial={ex.initialMax}
+                    final={ex.finalMax}
+                  />
+
+                  <div style={volumeStyle}>
+                    Volumen aportado: {ex.volumeContribution}
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
+
         </div>
+
       )}
 
     </div>
   )
 }
 
-/* ================= MINI CIRCLE ================= */
+/* ================= STRENGTH BAR ================= */
 
+function StrengthBar({
+  initial,
+  final
+}: {
+  initial: number
+  final: number
+}) {
+
+  const safeFinal = Math.max(final, 1)
+
+  const basePercent =
+    (initial / safeFinal) * 100
+
+  const growthPercent =
+    ((final - initial) / safeFinal) * 100
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: 8,
+        borderRadius: 4,
+        overflow: "hidden",
+        display: "flex",
+        marginTop: 6
+      }}
+    >
+
+      <div
+        style={{
+          width: `${basePercent}%`,
+          background: "#cfcfcf"
+        }}
+      />
+
+      <div
+        style={{
+          width: `${growthPercent}%`,
+          background: "#2f2fff",
+          transition: "width 0.6s ease"
+        }}
+      />
+
+    </div>
+  )
+}
+
+/* ================= MINI CIRCLE ================= */
 
 function MiniCircle({ memory }: { memory: ProgressMemory }) {
 
@@ -198,7 +323,8 @@ function MiniCircle({ memory }: { memory: ProgressMemory }) {
         height: SIZE
       }}
     >
-      {/* OBJETIVO */}
+
+      {/* objetivo */}
       <div
         style={{
           position: "absolute",
@@ -209,7 +335,7 @@ function MiniCircle({ memory }: { memory: ProgressMemory }) {
         }}
       />
 
-      {/* PROGRESO */}
+      {/* progreso */}
       <div
         style={{
           position: "absolute",
@@ -223,7 +349,7 @@ function MiniCircle({ memory }: { memory: ProgressMemory }) {
         }}
       />
 
-      {/* BASELINE */}
+      {/* baseline */}
       <div
         style={{
           position: "absolute",
@@ -236,9 +362,11 @@ function MiniCircle({ memory }: { memory: ProgressMemory }) {
           transform: "translate(-50%, -50%)"
         }}
       />
+
     </div>
   )
 }
+
 /* ================= STYLES ================= */
 
 const containerStyle: React.CSSProperties = {
@@ -315,4 +443,33 @@ const memoryBoxStyle: React.CSSProperties = {
 const detailWrapperStyle: React.CSSProperties = {
   marginTop: 60,
   textAlign: "center"
+}
+
+const statsToggleStyle: React.CSSProperties = {
+  marginTop: 30,
+  cursor: "pointer",
+  display: "flex",
+  justifyContent: "center",
+  gap: 10,
+  fontWeight: 600
+}
+
+const statsBoxStyle: React.CSSProperties = {
+  border: "1px solid #000",
+  borderRadius: 10,
+  padding: 20,
+  marginTop: 20,
+  textAlign: "left"
+}
+
+const statsRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  fontSize: 14
+}
+
+const volumeStyle: React.CSSProperties = {
+  fontSize: 12,
+  marginTop: 4,
+  color: "#444"
 }

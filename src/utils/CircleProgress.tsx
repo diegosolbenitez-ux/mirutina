@@ -40,9 +40,42 @@ export default function CircleProgress({
   const [animatedCurrent, setAnimatedCurrent] =
     useState(initialRatio)
 
+  /* ============================= */
+  /* DETECTAR OBJETIVO COMPLETADO */
+  /* ============================= */
+
+  const goalReached =
+  objectiveVolume > 0 &&
+    accumulatedProgress + initialVolume >= objectiveVolume
+
+  const [goalAnimation, setGoalAnimation] =
+    useState(false)
+
   useEffect(() => {
     setAnimatedCurrent(currentRatio)
   }, [currentRatio])
+
+  useEffect(() => {
+    if (goalReached) {
+      setGoalAnimation(true)
+    }
+  }, [goalReached])
+
+  /* ============================= */
+  /* COLORES DINÁMICOS */
+  /* ============================= */
+
+  const objectiveBorderColor = goalReached
+    ? "#2f2fff"
+    : "#3a3a3a"
+
+  const objectiveBackground = goalReached
+    ? "rgba(47, 47, 255, 0.16)"
+    : "transparent"
+
+  const baselineColor = goalReached
+    ? "#2f2fff"
+    : "#000000"
 
   return (
     <div
@@ -61,19 +94,22 @@ export default function CircleProgress({
           width: BASE_SIZE,
           height: BASE_SIZE,
           borderRadius: "50%",
-          border: "1px dashed #3a3a3a",
+          border: `1px dashed ${objectiveBorderColor}`,
+          background: objectiveBackground,
+          transition:
+            "background 0.8s ease, border 0.8s ease",
           zIndex: 1
         }}
       />
 
-      {/* CURRENT (relleno) */}
+      {/* CURRENT (relleno progreso) */}
       <div
         style={{
           position: "absolute",
           width: BASE_SIZE,
           height: BASE_SIZE,
           borderRadius: "50%",
-          background: "#96969600",
+          background: "transparent",
           border: "1px dashed #000000",
           top: 0,
           left: 0,
@@ -85,23 +121,26 @@ export default function CircleProgress({
         }}
       />
 
-      {/* BASELINE (solo borde visible) */}
+      {/* BASELINE */}
       <div
         style={{
           position: "absolute",
           width: BASE_SIZE,
           height: BASE_SIZE,
           borderRadius: "50%",
-          border: "1px solid #000000",
+          border: `1px solid ${baselineColor}`,
+          background: goalReached ? "#2f2fff" : "transparent",
           top: 0,
           left: 0,
           transform: `scale(${initialRatio})`,
           transformOrigin: "center",
+          transition:
+            "background 0.8s ease, border 0.8s ease",
           zIndex: 3
         }}
       />
 
-      {/* PREVIOUS (borde dashed visible encima) */}
+      {/* PREVIOUS */}
       <div
         style={{
           position: "absolute",
@@ -113,9 +152,47 @@ export default function CircleProgress({
           left: 0,
           transform: `scale(${previousRatio})`,
           transformOrigin: "center",
+          transition:
+            "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
           zIndex: 4
         }}
       />
+
+      {/* ANIMACIÓN DE COMPLETADO */}
+      {goalAnimation && (
+        <div
+          style={{
+            position: "absolute",
+            width: BASE_SIZE,
+            height: BASE_SIZE,
+            borderRadius: "50%",
+            border: "2px solid #2f2fff",
+            top: 0,
+            left: 0,
+            animation: "pulseGoal 1.2s ease-out",
+            zIndex: 5
+          }}
+        />
+      )}
+
+      <style>
+        {`
+        @keyframes pulseGoal {
+          0% {
+            transform: scale(0.9);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.05);
+            opacity: 0.4;
+          }
+          100% {
+            transform: scale(1.1);
+            opacity: 0;
+          }
+        }
+        `}
+      </style>
 
     </div>
   )

@@ -81,16 +81,23 @@ export type HistoryEntry = {
 /* ================= PROGRESS MEMORY ================= */
 /* Se guarda cuando accumulatedProgress >= objectiveVolume */
 
+export type MemoryExercise = {
+  name: string
+  initialMax: number
+  finalMax: number
+  volumeContribution: number
+}
+
 export type ProgressMemory = {
   id: string
   startDate: string
   date: string
+  days: number
   initialVolume: number
   objectiveVolume: number
   finalProgress: number
-  days: number
+  exercises: MemoryExercise[]
 }
-
 /* ================= OBJECTIVES ================= */
 
 export type ExerciseObjective = {
