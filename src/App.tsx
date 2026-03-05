@@ -2,6 +2,7 @@ import ExecuteRoutine from "./pages/ExecuteRoutine"
 import CreateRoutine from "./pages/CreateRoutine"
 import History from "./pages/History"
 import Progress from "./pages/Progress"
+import ExerciseHistory from "./pages/ExerciseHistory"
 
 export default function App() {
   return (
@@ -34,6 +35,9 @@ export default function App() {
         </section>
         <section>
           <Progress />
+        </section>
+        <section>
+          <ExerciseHistory />
         </section>
 
         <section>
