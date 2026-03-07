@@ -47,12 +47,14 @@ export default function CreateRoutine() {
 
 const [confirmResetOpen, setConfirmResetOpen] = useState(false)
 
-  const {
-    weeklyPlan,
-    setRoutineForDay,
-    objectives,
-    setObjectiveWeights
-  } = useWorkoutStore()
+ const {
+  weeklyPlan,
+  setRoutineForDay,
+  objectives,
+  setObjectiveWeights,
+  planWeeks,
+  setPlanWeeks
+} = useWorkoutStore()
 
 const expandedDayRef = useRef<HTMLDivElement | null>(null)
 
@@ -73,7 +75,16 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
     useState<WeekDay | null>(null)
 
   const [dayLabels, setDayLabels] =
-    useState<Record<WeekDay, string>>(defaultLabels)
+  useState<Record<WeekDay, string>>(() => {
+
+    const saved =
+      localStorage.getItem("day_labels")
+
+    return saved
+      ? JSON.parse(saved)
+      : defaultLabels
+
+  })
 
   const [planExpanded, setPlanExpanded] =
     useState(false)
@@ -133,6 +144,25 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
       }, {} as Record<WeekDay, TempInput>)
     )
 
+    useEffect(() => {
+
+  const cleaned: Record<WeekDay,string> = {
+    lunes: dayLabels.lunes.trim() || defaultLabels.lunes,
+    martes: dayLabels.martes.trim() || defaultLabels.martes,
+    miercoles: dayLabels.miercoles.trim() || defaultLabels.miercoles,
+    jueves: dayLabels.jueves.trim() || defaultLabels.jueves,
+    viernes: dayLabels.viernes.trim() || defaultLabels.viernes,
+    sabado: dayLabels.sabado.trim() || defaultLabels.sabado,
+    domingo: dayLabels.domingo.trim() || defaultLabels.domingo
+  }
+
+  localStorage.setItem(
+    "day_labels",
+    JSON.stringify(cleaned)
+  )
+
+}, [dayLabels])
+
   useEffect(() => {
     setExerciseLibrary(getExerciseLibrary())
   }, [])
@@ -157,6 +187,7 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
 
   const insideReset =
     resetPanelRef.current?.contains(target)
+    
 
   if (
     insideDay ||
@@ -400,17 +431,28 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
   {isEditing ? (
 
     <input
-      autoFocus
-      value={dayLabels[day]}
-      onChange={(e)=>
-        setDayLabels({
-          ...dayLabels,
-          [day]: e.target.value
-        })
-      }
-      onBlur={()=>setEditingDay(null)}
-      style={editableInputStyle}
-    />
+  autoFocus
+  value={dayLabels[day]}
+  onChange={(e)=>
+    setDayLabels({
+      ...dayLabels,
+      [day]: e.target.value
+    })
+  }
+  onBlur={()=>{
+
+    const value = dayLabels[day].trim()
+
+    setDayLabels({
+      ...dayLabels,
+      [day]: value || defaultLabels[day]
+    })
+
+    setEditingDay(null)
+
+  }}
+  style={editableInputStyle}
+/>
 
   ) : (
 
@@ -612,6 +654,9 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
       <button
         onClick={()=>{
           clearAllRoutines()
+          setPlanWeeks(0)
+
+          localStorage.removeItem("plan_weeks")
           setConfirmResetOpen(false)
         }}
         style={confirmButtonStyle}
@@ -693,6 +738,32 @@ const resetPanelRef = useRef<HTMLDivElement | null>(null)
 
             <div>Volumen Baseline: {volumeBaseline}</div>
             <div>Volumen Objetivo: {volumeObjective}</div>
+
+            <div style={{
+  display:"flex",
+  justifyContent:"space-between",
+  marginTop:20
+}}>
+
+  <span>Semanas de Plan</span>
+
+  <input
+    type="number"
+    min={1}
+    max={52}
+    value={planWeeks || ""}
+    onChange={(e)=>
+      setPlanWeeks(Number(e.target.value))
+    }
+    style={{
+      width:40,
+      textAlign:"center",
+      border:"1px solid #8b8b8b",
+      borderRadius:6
+    }}
+  />
+
+</div>
 
           </div>
 
@@ -818,7 +889,7 @@ const planRightColumnStyle:React.CSSProperties={
 }
 
 const planInputStyle:React.CSSProperties={
-  width:30,
+  width:35,
   marginLeft:6,
   textAlign:"center",
   border:"1px solid #8b8b8bbd",
@@ -857,6 +928,7 @@ const nameInputStyle: React.CSSProperties = {
   flex:3,
   border:"1px solid #aaa",
   height:26,
+  width:80,
   borderRadius:6,
   padding:"6px"
 }

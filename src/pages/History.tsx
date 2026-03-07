@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { useWorkoutStore } from "../store/useWorkoutStore"
 
 const PAGE_SIZE = 7
@@ -24,6 +24,13 @@ export default function History() {
   const [animateKey, setAnimateKey] = useState(0)
   const [fade, setFade] = useState(true)
 
+  const [panelVisible, setPanelVisible] = useState(
+    selectedGlobalIndex !== null
+  )
+
+  const historyPanelRef =
+    useRef<HTMLDivElement | null>(null)
+
   const safePage =
     totalPages === 0
       ? 0
@@ -42,7 +49,40 @@ export default function History() {
       : null
 
   /* ======================== */
-  /* ANIMATION TRIGGER */
+  /* CLICK FUERA DEL PANEL */
+  /* ======================== */
+
+  useEffect(() => {
+
+    function handleClickOutside(e: MouseEvent) {
+
+      const target = e.target as Node
+
+      if (
+        historyPanelRef.current &&
+        !historyPanelRef.current.contains(target)
+      ) {
+        setSelectedGlobalIndex(null)
+      }
+
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    )
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      )
+    }
+
+  }, [])
+
+  /* ======================== */
+  /* ANIMACION PAGINA */
   /* ======================== */
 
   useEffect(() => {
@@ -57,6 +97,28 @@ export default function History() {
     return () => clearTimeout(t)
 
   }, [page, selectedGlobalIndex])
+
+  /* ======================== */
+  /* CONTROL VISIBILIDAD PANEL */
+  /* ======================== */
+
+  useEffect(() => {
+
+    if (selectedGlobalIndex !== null) {
+
+      setPanelVisible(true)
+
+    } else {
+
+      const t = setTimeout(() => {
+        setPanelVisible(false)
+      }, 200)
+
+      return () => clearTimeout(t)
+
+    }
+
+  }, [selectedGlobalIndex])
 
   /* ======================== */
   /* PAGINATION */
@@ -76,7 +138,9 @@ export default function History() {
       if (nextIndex < sortedHistory.length) {
         setSelectedGlobalIndex(nextIndex)
       }
+
     }
+
   }
 
   const goPrevPage = () => {
@@ -93,7 +157,9 @@ export default function History() {
       if (prevIndex >= 0) {
         setSelectedGlobalIndex(prevIndex)
       }
+
     }
+
   }
 
   /* ======================== */
@@ -106,28 +172,33 @@ export default function History() {
         {/* ===== LEFT (DETAILS) ===== */}
 
         <div
+          ref={historyPanelRef}
           key={animateKey}
           style={{
             ...leftDetailColumnStyle,
-            opacity: fade ? 1 : 0,
-            transform: fade
-              ? "translateY(0px)"
-              : "translateY(10px)",
+
+            opacity:
+              selectedGlobalIndex !== null ? 1 : 0,
+
+            transform:
+              selectedGlobalIndex !== null
+                ? "translateY(0px)"
+                : "translateY(10px)",
+
             transition: "all 220ms ease"
           }}
         >
 
-          {selectedEntry && (
+          {panelVisible && selectedEntry && (
 
             <>
+
               <div style={dataBlockStyle}>
 
                 <div style={{ fontWeight: 700 }}>
-
                   {(
                     selectedEntry.metrics?.completionPercentage ?? 0
                   ).toFixed(0)}% Completado
-
                 </div>
 
                 <div style={{ marginBottom: 20 }}>
@@ -159,6 +230,7 @@ export default function History() {
               </div>
 
               <div style={noteBlockStyle}>
+
                 {selectedEntry.note
                   ? selectedEntry.note
                   : "Sin nota"}
@@ -171,9 +243,11 @@ export default function History() {
                 >
                   {selectedEntry.date}
                 </div>
+
               </div>
 
             </>
+
           )}
 
         </div>
@@ -208,25 +282,43 @@ export default function History() {
               selectedGlobalIndex === globalIndex
 
             return (
+
               <button
                 key={entry.date + i}
-                onClick={() =>
-                  setSelectedGlobalIndex(globalIndex)
-                }
+
+                onClick={() => {
+
+                  if (selectedGlobalIndex === globalIndex) {
+
+                    setSelectedGlobalIndex(null)
+
+                  } else {
+
+                    setSelectedGlobalIndex(globalIndex)
+
+                  }
+
+                }}
+
                 style={{
                   ...dayButtonStyle,
+
                   background: isSelected
                     ? "#000"
                     : "transparent",
+
                   color: isSelected
                     ? "#fff"
                     : "#000",
+
                   transition: "all 180ms ease"
                 }}
               >
                 {String(globalIndex + 1).padStart(2, "0")}
               </button>
+
             )
+
           })}
 
           {safePage < totalPages - 1 && (
@@ -321,10 +413,10 @@ const noteBlockStyle: React.CSSProperties = {
   borderRadius: 12,
   padding: 20,
   lineHeight: 1.6,
-  maxWidth: "100%",           // 🔥 mantiene ancho
+  maxWidth: "100%",
   width: "100%",
   boxSizing: "border-box",
-  wordBreak: "break-word",    // 🔥 rompe palabras largas
-  overflowWrap: "break-word", // 🔥 soporte moderno
-  whiteSpace: "pre-wrap"      // 🔥 respeta saltos de línea
+  wordBreak: "break-word",
+  overflowWrap: "break-word",
+  whiteSpace: "pre-wrap"
 }

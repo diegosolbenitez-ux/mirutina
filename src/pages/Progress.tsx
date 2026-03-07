@@ -1,13 +1,33 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { useWorkoutStore } from "../store/useWorkoutStore"
 import type { ProgressMemory } from "../models/types"
 import CircleProgress from "../utils/CircleProgress"
 
 const PAGE_SIZE = 60
 
+
+
 export default function Progress() {
 
-  const { history, memories } = useWorkoutStore()
+const [monthOffset, setMonthOffset] = useState(0)
+
+  const { history, memories, planWeeks } = useWorkoutStore()
+
+  const planStart = new Date()
+
+const planEnd = new Date()
+
+planEnd.setDate(
+  planStart.getDate() + planWeeks * 7
+)
+
+  const sortedHistory = useMemo(() => {
+
+  return [...history].sort((a, b) =>
+    a.date.localeCompare(b.date)
+  )
+
+}, [history])
 
   const [selectedMemoryId, setSelectedMemoryId] =
     useState<string | null>(null)
@@ -17,11 +37,81 @@ export default function Progress() {
      HISTORIAL ORDENADO
   ========================== */
 
-  const sortedHistory = useMemo(() => {
-    return [...history].sort((a, b) =>
-      a.date.localeCompare(b.date)
-    )
-  }, [history])
+  const currentMonth = useMemo(() => {
+
+    const planStart = new Date()
+
+const planEnd = new Date()
+
+planEnd.setDate(
+  planStart.getDate() + planWeeks * 7
+)
+
+  const today = new Date()
+
+  return new Date(
+    today.getFullYear(),
+    today.getMonth() - monthOffset,
+    1
+  )
+
+}, [monthOffset])
+
+const touchStartX = useRef<number | null>(null)
+
+function handleTouchStart(e: React.TouchEvent) {
+
+  touchStartX.current = e.touches[0].clientX
+
+}
+
+function handleTouchEnd(e: React.TouchEvent) {
+
+  if (touchStartX.current === null) return
+
+  const delta =
+    e.changedTouches[0].clientX - touchStartX.current
+
+  if (delta < -60) {
+
+    // swipe izquierda → mes futuro
+    setMonthOffset(prev => prev - 1)
+
+  }
+
+  if (delta > 60) {
+
+    // swipe derecha → mes pasado
+    setMonthOffset(prev => prev + 1)
+
+  }
+
+  touchStartX.current = null
+
+}
+
+const completedDays = useMemo(() => {
+
+  const set = new Set<string>()
+
+  history.forEach(h => {
+
+    if (h.metrics.completionPercentage > 0) {
+
+      const d = new Date(h.date)
+
+      const normalized =
+        `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
+
+      set.add(normalized)
+
+    }
+
+  })
+
+  return set
+
+}, [history])
 
   const totalPages =
     Math.ceil(sortedHistory.length / PAGE_SIZE)
@@ -33,10 +123,8 @@ export default function Progress() {
       ? 0
       : Math.min(page, totalPages - 1)
 
-  const start = safePage * PAGE_SIZE
+  
 
-  const visible =
-    sortedHistory.slice(start, start + PAGE_SIZE)
 
   const completedCount =
     sortedHistory.filter(
@@ -79,7 +167,9 @@ export default function Progress() {
 
 },[selectedMemory])
 
+
   return (
+    
     <div style={containerStyle}>
 
       {/* ================= GRID DIAS ================= */}
@@ -95,25 +185,122 @@ export default function Progress() {
           </button>
         )}
 
-        <div style={gridStyle}>
-          {visible.map((entry, i) => {
+      <div
+  style={calendarWrapperStyle}
+  onTouchStart={handleTouchStart}
+  onTouchEnd={handleTouchEnd}
+>
 
-            const isCompleted =
-              entry.metrics.completionPercentage > 0
+{(() => {
 
-            return (
-              <div
-                key={entry.date + i}
-                style={{
-                  ...squareStyle,
-                  background: isCompleted
-                    ? "#000000"
-                    : "#ffffff"
-                }}
-              />
-            )
-          })}
-        </div>
+  const monthDate = currentMonth
+
+  const year = monthDate.getFullYear()
+  const month = monthDate.getMonth()
+
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+
+  const totalDays = lastDay.getDate()
+  const startWeekDay = firstDay.getDay()
+
+  const days = []
+
+  for (let i = 0; i < startWeekDay; i++) {
+    days.push(null)
+  }
+
+  for (let d = 1; d <= totalDays; d++) {
+
+  const dateStr =
+    `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`
+
+  days.push({
+    date: dateStr,
+    day: d
+  })
+
+}
+
+  return (
+
+    <div style={monthBlockStyle}>
+
+      <div style={monthLabelStyle}>
+        {monthDate.toLocaleString("default",{month:"long"})} {year}
+      </div>
+
+      <div style={calendarGridStyle}>
+
+        
+        
+        {days.map((item, i) => {
+
+  if (!item) return <div key={i} />
+
+  const date = item.date
+  const dayNumber = item.day
+
+  const completed = history.some(h =>
+  h.date === date && h.metrics.completionPercentage > 0
+)
+
+   const cellDate = new Date(date + "T12:00:00")
+
+const inPlan =
+  planWeeks > 0 &&
+  cellDate >= planStart &&
+  cellDate <= planEnd
+
+          return (
+
+            <div
+  key={date}
+  style={{
+    ...calendarDayStyle,
+
+    background: completed
+      ? "#2f2fff"
+      : "#ffffff",
+
+    border: completed
+  ? "1px solid #0000ff"
+  : inPlan
+  ? "1px solid #2f2fff"
+  : "1px solid #b8b8b8",
+
+    boxShadow: completed
+      ? "0 0 5px rgba(47,47,255,0.5)"
+      : "none",
+
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+
+    fontSize: 8,
+    fontWeight: 600,
+
+    color: completed
+      ? "#ffffff"
+      : "#8b8b8b"
+  }}
+>
+  {dayNumber}
+</div>
+
+          )
+
+        })}
+
+      </div>
+
+    </div>
+
+  )
+
+})()}
+
+</div>
 
         {safePage < totalPages - 1 && (
           <button
@@ -379,19 +566,9 @@ const topBlockWrapper: React.CSSProperties = {
   marginBottom: 40
 }
 
-const gridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(10, 1fr)",
-  gap: 4,
-  width: 260
-}
 
-const squareStyle: React.CSSProperties = {
-  width: 24,
-  height: 24,
-  border: "1px solid #7575755b",
-  borderRadius: 6
-}
+
+
 
 const leftArrowStyle: React.CSSProperties = {
   position: "absolute",
@@ -457,4 +634,53 @@ const volumeStyle: React.CSSProperties = {
   fontSize: 12,
   marginTop: 4,
   color: "#444"
+}
+
+const calendarWrapperStyle: React.CSSProperties = {
+
+  maxHeight: 320,
+  overflowY: "auto",
+  display: "flex",
+  flexDirection: "column",
+  gap: 20,
+  alignItems: "center"
+
+}
+
+const monthBlockStyle: React.CSSProperties = {
+
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 8
+
+}
+
+const monthLabelStyle: React.CSSProperties = {
+
+  fontSize: 12,
+  opacity: 0.6
+
+}
+
+const calendarGridStyle: React.CSSProperties = {
+
+  display: "grid",
+  gridTemplateColumns: "repeat(7, 1fr)",
+  columnGap: 10,   // ← espacio horizontal entre días
+  rowGap: 10,
+  marginTop: 30,      // ← espacio vertical entre semanas
+  width: 260
+
+}
+
+const calendarDayStyle: React.CSSProperties = {
+
+  width: 28,
+  height: 28,
+  borderRadius: 6,
+  border: "1px solid #d1d1d1",
+  fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+  transition: "all .25s ease"
+
 }

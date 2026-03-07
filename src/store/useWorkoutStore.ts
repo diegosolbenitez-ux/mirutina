@@ -34,6 +34,7 @@ const generateId = () =>
 
 /* ================= STATE ================= */
 
+
 type ExerciseObjectiveState = {
   exerciseId: string
   baselineWeights: number[]
@@ -49,6 +50,8 @@ type ObjectivesState = {
 
 type WorkoutStore = {
 
+
+
   weeklyPlan: WeeklyPlan
   activeWorkout: ActiveWorkout | null
   history: HistoryEntry[]
@@ -56,6 +59,10 @@ type WorkoutStore = {
   memories: ProgressMemory[]
   selectedMemoryId: string | null
   setSelectedMemory: (id: string | null) => void
+
+  planWeeks: number
+setPlanWeeks: (weeks: number) => void
+  
 
   setRoutineForDay: (
     day: WeekDay,
@@ -101,6 +108,9 @@ create<WorkoutStore>((set, get) => ({
   ) ?? [],
 
 selectedMemoryId: null,
+planWeeks: Number(localStorage.getItem("plan_weeks")) || 0,
+
+
 
 /* ================= SET ROUTINE ================= */
 
@@ -572,7 +582,7 @@ finalizeWorkout: (note) => {
 
     {
 
-      date: activeWorkout.date,
+      date: getTodayDate(),
       day: activeWorkout.day,
       routineId: routine.id,
       exercises,
@@ -623,7 +633,20 @@ loadPersistedWorkout: () => {
     selectedMemoryId: id
   })
 
-}
+},
+
+setPlanWeeks: (weeks) => {
+
+  localStorage.setItem(
+    "plan_weeks",
+    String(weeks)
+  )
+
+  set({
+    planWeeks: weeks
+  })
+
+},
 
 
 

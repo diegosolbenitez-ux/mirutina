@@ -16,15 +16,16 @@ const weekDays: WeekDay[] = [
 export default function ExecuteRoutine() {
 
   const {
-    weeklyPlan,
-    activeWorkout,
-    objectives,
-    history,
-    startWorkout,
-    confirmSet,
-    finalizeWorkout,
-    resetActiveWorkout
-  } = useWorkoutStore()
+  weeklyPlan,
+  activeWorkout,
+  objectives,
+  history,
+  startWorkout,
+  confirmSet,
+  finalizeWorkout,
+  resetActiveWorkout,
+  planWeeks
+} = useWorkoutStore()
 
   const [weight, setWeight] = useState("")
   const [note, setNote] = useState("")
@@ -34,6 +35,19 @@ export default function ExecuteRoutine() {
     weekDays[todayIndex === 0 ? 6 : todayIndex - 1]
 
   const routine = weeklyPlan[today]
+
+  const planEnd = new Date()
+
+planEnd.setDate(
+  planEnd.getDate() + planWeeks * 7
+)
+
+const lastPlanDay =
+  planWeeks > 0
+    ? new Date(
+        Date.now() + planWeeks * 7 * 86400000
+      ).toISOString().slice(0,10)
+    : "-"
 
   /* ============================= */
   /* RESET SI CAMBIA RUTINA */
@@ -145,10 +159,19 @@ export default function ExecuteRoutine() {
     const firstExercise = routine.exercises[0]
 
     return (
+
+
+      
       <div style={containerCenterStyle}>
 
         <div style={initialBlockStyle}>
+
+          <div style={{ marginBottom:10 }}>
+  Último día del Plan Actual: {lastPlanDay}
+</div>
           <div>Ejercicio 01</div>
+
+          
 
           <div style={{ marginBottom: 20 }}>
             {firstExercise?.name}
@@ -185,7 +208,7 @@ export default function ExecuteRoutine() {
       goalCompleted
       ? "¡Nuevo ciclo completado!"
     : objectiveVolume === 0
-      ? "Para ver Progresos → Ingresa Pesos objetivo en Plan  "
+      ? "Para ver Progresos → Ingresa Objetivos en tu Plan  "
       : "Nota del día"
   }
   value={note}

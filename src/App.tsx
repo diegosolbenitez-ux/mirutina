@@ -8,7 +8,7 @@ export default function App() {
   return (
     <div
       style={{
-        background: "#ffffff",
+        background: "#ffffffee",
         minHeight: "100vh",
         fontFamily: "'Courier New', monospace",
         display: "flex",

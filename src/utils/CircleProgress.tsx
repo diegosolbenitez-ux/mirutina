@@ -77,7 +77,7 @@ const goalReached =
 
   const baselineColor = goalReached
     ? "#ffffff"
-    : "#000000"
+    : "#00000000"
 
   return (
     <div
