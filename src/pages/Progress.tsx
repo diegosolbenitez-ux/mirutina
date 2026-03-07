@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useMemo, useRef} from "react"
 import { useWorkoutStore } from "../store/useWorkoutStore"
 import type { ProgressMemory } from "../models/types"
 import CircleProgress from "../utils/CircleProgress"
@@ -90,28 +90,7 @@ function handleTouchEnd(e: React.TouchEvent) {
 
 }
 
-const completedDays = useMemo(() => {
 
-  const set = new Set<string>()
-
-  history.forEach(h => {
-
-    if (h.metrics.completionPercentage > 0) {
-
-      const d = new Date(h.date)
-
-      const normalized =
-        `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
-
-      set.add(normalized)
-
-    }
-
-  })
-
-  return set
-
-}, [history])
 
   const totalPages =
     Math.ceil(sortedHistory.length / PAGE_SIZE)

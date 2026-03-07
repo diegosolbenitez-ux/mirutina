@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useWorkoutStore } from "../store/useWorkoutStore"
 
 const PAGE_SIZE = 7
