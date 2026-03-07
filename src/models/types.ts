@@ -109,4 +109,3 @@ export type ExerciseObjective = {
 export type GlobalObjective = {
   exercises: ExerciseObjective[]
 }
-

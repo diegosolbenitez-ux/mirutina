@@ -54,6 +54,8 @@ type WorkoutStore = {
   history: HistoryEntry[]
   objectives: ObjectivesState
   memories: ProgressMemory[]
+  selectedMemoryId: string | null
+  setSelectedMemory: (id: string | null) => void
 
   setRoutineForDay: (
     day: WeekDay,
@@ -94,9 +96,11 @@ create<WorkoutStore>((set, get) => ({
     ) ?? defaultObjectives,
 
   memories:
-    JSON.parse(
-      localStorage.getItem("progress_memories") || "[]"
-    ) ?? [],
+  JSON.parse(
+    localStorage.getItem("progress_memories") || "[]"
+  ) ?? [],
+
+selectedMemoryId: null,
 
 /* ================= SET ROUTINE ================= */
 
@@ -609,9 +613,18 @@ loadPersistedWorkout: () => {
     set({
       activeWorkout: persisted
     })
-
   }
 
+},
+
+  setSelectedMemory: (id) => {
+
+  set({
+    selectedMemoryId: id
+  })
+
 }
+
+
 
 }))

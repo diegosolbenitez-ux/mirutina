@@ -45,6 +45,8 @@ type TempInput = {
 
 export default function CreateRoutine() {
 
+const [confirmResetOpen, setConfirmResetOpen] = useState(false)
+
   const {
     weeklyPlan,
     setRoutineForDay,
@@ -52,7 +54,16 @@ export default function CreateRoutine() {
     setObjectiveWeights
   } = useWorkoutStore()
 
-  const planRef = useRef<HTMLDivElement | null>(null)
+const expandedDayRef = useRef<HTMLDivElement | null>(null)
+
+const topBarRef = useRef<HTMLDivElement | null>(null)
+
+const planPanelRef = useRef<HTMLDivElement | null>(null)
+
+const libraryPanelRef = useRef<HTMLDivElement | null>(null)
+
+const resetPanelRef = useRef<HTMLDivElement | null>(null)
+
   const longPressTimer = useRef<number | null>(null)
 
   const [expandedDay, setExpandedDay] =
@@ -76,6 +87,35 @@ export default function CreateRoutine() {
   const [suggestions, setSuggestions] =
     useState<string[]>([])
 
+  /* ===== CLICK EFFECT ===== */
+
+  const [clickEffect, setClickEffect] = useState<{
+    x: number
+    y: number
+    key: number
+  } | null>(null)
+
+  function triggerClickEffect(
+    e: React.MouseEvent
+  ) {
+
+    const rect =
+      (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+    const x = rect.left + rect.width / 2
+    const y = rect.top + rect.height / 2
+
+    setClickEffect({
+      x,
+      y,
+      key: Date.now()
+    })
+
+    setTimeout(() => {
+      setClickEffect(null)
+    }, 400)
+  }
+
   const [dayExercises, setDayExercises] =
     useState<Record<WeekDay, ExerciseTemplate[]>>(
       weekDays.reduce((acc, day) => {
@@ -96,6 +136,50 @@ export default function CreateRoutine() {
   useEffect(() => {
     setExerciseLibrary(getExerciseLibrary())
   }, [])
+
+ useEffect(() => {
+
+  function handleClickOutside(e: MouseEvent) {
+
+  const target = e.target as Node
+
+  const insideDay =
+    expandedDayRef.current?.contains(target)
+
+  const insideTopBar =
+    topBarRef.current?.contains(target)
+
+  const insidePlan =
+    planPanelRef.current?.contains(target)
+
+  const insideLibrary =
+    libraryPanelRef.current?.contains(target)
+
+  const insideReset =
+    resetPanelRef.current?.contains(target)
+
+  if (
+    insideDay ||
+    insideTopBar ||
+    insidePlan ||
+    insideLibrary ||
+    insideReset
+  ) return
+
+  setExpandedDay(null)
+  setPlanExpanded(false)
+  setLibraryOpen(false)
+  setConfirmResetOpen(false)
+
+}
+
+  document.addEventListener("mousedown", handleClickOutside)
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside)
+  }
+
+}, [])
 
   const handleNameChange = (day: WeekDay, value: string) => {
 
@@ -290,28 +374,11 @@ export default function CreateRoutine() {
 
   return (
 
-    <div style={containerStyle}>
 
-      <div
-        style={libraryButtonStyle}
-        onClick={() => setLibraryOpen(!libraryOpen)}
-      >
-        <div style={dotStyle}/>
-        <div style={dotStyle}/>
-        <div style={dotStyle}/>
-      </div>
+  <div style={containerStyle}>
 
-      {libraryOpen && (
-        <div style={libraryPanelStyle}>
-          {exerciseLibrary.map(ex => (
-            <div key={ex} style={libraryRowStyle}>
-              <span>{ex}</span>
-              <button onClick={() => removeFromLibrary(ex)}> - </button>
-            </div>
-          ))}
-        </div>
-      )}
-
+    
+    {/* RESTO DEL CONTENIDO */}
       {weekDays.map(day => {
 
         const isExpanded = expandedDay === day
@@ -319,150 +386,260 @@ export default function CreateRoutine() {
         const exercises = dayExercises[day]
 
         return (
-          <div key={day} style={dayContainerStyle(isExpanded)}>
+         <div
+  key={day}
+  ref={isExpanded ? expandedDayRef : null}
+  style={dayContainerStyle(isExpanded)}
+>
 
             <div
-              style={headerStyle(isExpanded)}
-              onClick={() => !isEditing && toggleDay(day)}
-            >
+  style={headerStyle(isExpanded)}
+  onClick={() => !isEditing && toggleDay(day)}
+>
 
-              {isEditing ? (
-                <input
-                  autoFocus
-                  value={dayLabels[day]}
-                  onChange={(e)=>
-                    setDayLabels({
-                      ...dayLabels,
-                      [day]: e.target.value
-                    })
-                  }
-                  onBlur={()=>setEditingDay(null)}
-                  style={editableInputStyle}
-                />
-              ) : (
-                <span
-                  onMouseDown={()=>startLongPress(day)}
-                  onMouseUp={clearLongPress}
-                  onTouchStart={()=>startLongPress(day)}
-                  onTouchEnd={clearLongPress}
-                >
-                  {dayLabels[day]}
-                </span>
-              )}
+  {isEditing ? (
 
-              <span>{isExpanded ? "‹" : ">"}</span>
+    <input
+      autoFocus
+      value={dayLabels[day]}
+      onChange={(e)=>
+        setDayLabels({
+          ...dayLabels,
+          [day]: e.target.value
+        })
+      }
+      onBlur={()=>setEditingDay(null)}
+      style={editableInputStyle}
+    />
 
-            </div>
+  ) : (
 
-            {isExpanded && (
+    <span
+      onMouseDown={()=>startLongPress(day)}
+      onMouseUp={clearLongPress}
+      onTouchStart={()=>startLongPress(day)}
+      onTouchEnd={clearLongPress}
+    >
+      {dayLabels[day]}
+    </span>
 
-              <div style={expandedCardStyle}>
+  )}
 
-                <div style={inputRowStyle}>
+</div>
+{isExpanded && (
 
-                  <input
-                    placeholder="Nombre"
-                    value={tempInputs[day].name}
-                    onChange={(e)=>
-                      handleNameChange(day,e.target.value)
-                    }
-                    style={nameInputStyle}
-                  />
+  <div style={expandedCardStyle}>
 
-                  <input
-                    type="number"
-                    placeholder="Reps"
-                    value={tempInputs[day].reps || ""}
-                    onChange={(e)=>
-                      setTempInputs({
-                        ...tempInputs,
-                        [day]:{
-                          ...tempInputs[day],
-                          reps:Number(e.target.value)
-                        }
-                      })
-                    }
-                    style={smallInputStyle}
-                  />
+    <div style={inputRowStyle}>
 
-                  <input
-                    type="number"
-                    placeholder="Series"
-                    value={tempInputs[day].sets || ""}
-                    onChange={(e)=>
-                      setTempInputs({
-                        ...tempInputs,
-                        [day]:{
-                          ...tempInputs[day],
-                          sets:Number(e.target.value)
-                        }
-                      })
-                    }
-                    style={smallInputStyle}
-                  />
+      <input
+        placeholder="Nombre"
+        value={tempInputs[day].name}
+        onChange={(e)=>
+          handleNameChange(day,e.target.value)
+        }
+        style={nameInputStyle}
+      />
 
-                  <button
-                    onClick={()=>addExercise(day)}
-                    style={iconButtonStyle}
-                  >+</button>
+      <input
+        type="number"
+        placeholder="Reps"
+        value={tempInputs[day].reps || ""}
+        onChange={(e)=>
+          setTempInputs({
+            ...tempInputs,
+            [day]:{
+              ...tempInputs[day],
+              reps:Number(e.target.value)
+            }
+          })
+        }
+        style={smallInputStyle}
+      />
 
-                </div>
+      <input
+        type="number"
+        placeholder="Series"
+        value={tempInputs[day].sets || ""}
+        onChange={(e)=>
+          setTempInputs({
+            ...tempInputs,
+            [day]:{
+              ...tempInputs[day],
+              sets:Number(e.target.value)
+            }
+          })
+        }
+        style={smallInputStyle}
+      />
 
-                {suggestions.length>0 && (
-                  <div style={autocompleteBoxStyle}>
-                    {suggestions.map(s=>(
-                      <div
-                        key={s}
-                        style={suggestionStyle}
-                        onClick={()=>selectSuggestion(day,s)}
-                      >
-                        {s}
-                      </div>
-                    ))}
-                  </div>
-                )}
+      <button
+        onClick={()=>addExercise(day)}
+        style={iconButtonStyle}
+      >
+        +
+      </button>
 
-                {exercises.map(ex=>(
-                  <div key={ex.id} style={exerciseRowStyle}>
-                    <span>{ex.name} {ex.reps} x {ex.sets}</span>
-                    <button
-                      onClick={()=>removeExercise(day,ex.id)}
-                      style={iconButtonStyle}
-                    >-</button>
-                  </div>
-                ))}
+    </div>
 
-              </div>
-
-            )}
-
+    {suggestions.length>0 && (
+      <div style={autocompleteBoxStyle}>
+        {suggestions.map(s=>(
+          <div
+            key={s}
+            style={suggestionStyle}
+            onClick={()=>selectSuggestion(day,s)}
+          >
+            {s}
           </div>
+        ))}
+      </div>
+    )}
+
+    {exercises.map(ex=>(
+      <div key={ex.id} style={exerciseRowStyle}>
+        <span>{ex.name} {ex.reps} x {ex.sets}</span>
+        <button
+          onClick={()=>removeExercise(day,ex.id)}
+          style={iconButtonStyle}
+        >
+          -
+        </button>
+      </div>
+    ))}
+
+  </div>
+
+)}
+          </div>
+          
         )
       })}
 
-      <div style={clearButtonWrapperStyle}>
-        <button
-          onClick={clearAllRoutines}
-          style={clearButtonStyle}
-        >
-          X
-        </button>
-      </div>
+     {/* TOP BAR */}
 
-      {/* PLAN */}
+    <div ref={topBarRef} style={topBarStyle}>
 
       <div
-        ref={planRef}
-        style={planContainerStyle(planExpanded)}
-      >
+        onClick={(e)=>{
+  triggerClickEffect(e)
 
-        <div
-          onClick={()=>setPlanExpanded(!planExpanded)}
-          style={planHeaderStyle()}
-        >
-          <span>Plan</span>
-          <span>{planExpanded ? "‹" : ">"}</span>
-        </div>
+  setPlanExpanded(prev => !prev)
+  setLibraryOpen(false)
+  setConfirmResetOpen(false)
+
+}}
+        style={planHeaderTopStyle}
+      >
+        Plan
+      </div>
+
+      <div style={{ display:"flex", gap:6 }}>
+
+        <button
+  onClick={(e)=>{
+  triggerClickEffect(e)
+
+  setLibraryOpen(prev => !prev)
+  setConfirmResetOpen(false)
+  setPlanExpanded(false)
+
+}}
+  style={clearButtonStyle}
+>
+  E
+</button>
+
+        <button
+  onClick={(e)=>{
+  triggerClickEffect(e)
+
+  setConfirmResetOpen(prev => !prev)
+  setLibraryOpen(false)
+  setPlanExpanded(false)
+
+}}
+  style={clearButtonStyle}
+>
+  X
+</button>
+
+      </div>
+
+    </div>
+
+    {/* PANEL BIBLIOTECA */}
+
+    {libraryOpen && (
+  <div ref={libraryPanelRef} style={floatingPanelStyle}>
+
+        {exerciseLibrary.length === 0 && (
+          <div>No hay ejercicios guardados</div>
+        )}
+
+        {exerciseLibrary.map(ex => (
+          <div key={ex} style={libraryRowStyle}>
+
+            <span>{ex}</span>
+
+            <button
+              onClick={() => removeFromLibrary(ex)}
+              style={iconButtonStyle}
+            >
+              -
+            </button>
+
+          </div>
+        ))}
+
+      </div>
+    )}
+
+   {confirmResetOpen && (
+
+  <div ref={resetPanelRef} style={floatingPanelStyle}>
+
+    <div style={{ textAlign:"center", marginBottom:16 }}>
+      Iniciar Nueva Rutina
+    </div>
+
+    <div style={{
+      display:"flex",
+      justifyContent:"center",
+      gap:20
+    }}>
+
+      <button
+        onClick={()=>{
+          clearAllRoutines()
+          setConfirmResetOpen(false)
+        }}
+        style={confirmButtonStyle}
+      >
+        Si
+      </button>
+
+      <button
+        onClick={()=>{
+          setConfirmResetOpen(false)
+        }}
+        style={confirmButtonStyle}
+      >
+        No
+      </button>
+
+    </div>
+
+  </div>
+
+)}
+
+ {/* PLAN */}
+
+      <div
+  ref={planPanelRef}
+  style={planContainerStyle(planExpanded)}
+>
 
         {planExpanded && (
 
@@ -523,6 +700,20 @@ export default function CreateRoutine() {
 
       </div>
 
+
+      {/* CLICK EFFECT */}
+
+      {clickEffect && (
+        <div
+          key={clickEffect.key}
+          style={{
+            ...clickCircleStyle,
+            left: clickEffect.x,
+            top: clickEffect.y
+          }}
+        />
+      )}
+
     </div>
 
   )
@@ -544,9 +735,8 @@ const containerStyle: React.CSSProperties = {
 const libraryButtonStyle : React.CSSProperties = {display:"flex",gap:6,cursor:"pointer"}
 
 const dotStyle : React.CSSProperties = {
-  width:3,height:3,borderRadius:"50%",background:"#333333"
+  width:3,height:3,borderRadius:"50%",background:"#000000"
 }
-
 const libraryPanelStyle : React.CSSProperties = {
   border:"1px solid #0000007a",borderRadius:10,padding:20,width:240
 }
@@ -560,117 +750,172 @@ const autocompleteBoxStyle: React.CSSProperties = {
 }
 
 const suggestionStyle: React.CSSProperties = {padding:4,cursor:"pointer"}
-
-const dayContainerStyle = (
-  expanded: boolean
-): React.CSSProperties => ({
+const dayContainerStyle = (expanded:boolean):React.CSSProperties=>({
   width: expanded ? 360 : 240,
-  transition: "all .3s ease",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center"
+  marginTop:10,
+  transition:"all .3s ease",
+  display:"flex",
+  flexDirection:"column",
+  alignItems:"center"
 })
 
-const headerStyle = (
-  expanded: boolean
-): React.CSSProperties => ({
-  width: "100%",
+const headerStyle = (expanded:boolean):React.CSSProperties=>({
+  width:"100%",
   background: expanded ? "#000" : "transparent",
   color: expanded ? "#fff" : "#000",
-  border: "1px solid #8b8b8b",
-  borderRadius: 10,
-  padding: "14px 20px",
-  display: "flex",
-  justifyContent: "space-between",
-  cursor: "pointer"
+  border:"1px solid #8b8b8b",
+  borderRadius:10,
+  padding:"14px 20px",
+  display:"flex",
+  justifyContent:"space-between",
+  cursor:"pointer"
 })
 
-const editableInputStyle: React.CSSProperties = {
-  
-  border:"none",outline:"none"}
+const clearButtonStyle:React.CSSProperties={
+  width:16,height:16,borderRadius:6,
+  border:"1px solid #b8b8b8",
+  background:"white",
+  cursor:"pointer",
+  fontSize:8
+}
+
+const topBarStyle:React.CSSProperties={
+  width:190,
+  marginTop:10,
+  marginBottom:0,
+  display:"flex",
+  justifyContent:"space-between",
+  alignItems:"center",
+  borderRadius:10,
+  padding:0,
+}
+
+const planHeaderTopStyle:React.CSSProperties={
+  cursor:"pointer",
+  fontSize:12
+}
+
+const planContainerStyle=(expanded:boolean):React.CSSProperties=>({
+  width: expanded ? 360 : 240,
+  transition:"all .3s ease",
+  display:"flex",
+  flexDirection:"column",
+  alignItems:"center"
+})
+
+const planExpandedCardStyle:React.CSSProperties={
+  width:"100%",
+  marginTop:10,
+  border:"1px solid #000",
+  borderRadius:10,
+  padding:20,
+  display:"flex",
+  flexDirection:"column",
+  gap:30
+}
+
+const planExerciseRowStyle:React.CSSProperties={
+  display:"flex",
+  justifyContent:"space-between"
+}
+
+const planRightColumnStyle:React.CSSProperties={
+  display:"flex",
+  flexDirection:"column",
+  alignItems:"flex-end",
+  gap:6
+}
+
+const planInputStyle:React.CSSProperties={
+  width:30,
+  marginLeft:6,
+  textAlign:"center",
+  border:"1px solid #8b8b8bbd",
+  borderRadius:6
+}
+
+const clickCircleStyle:React.CSSProperties={
+  position:"fixed",
+  width:30,
+  height:30,
+  borderRadius:"50%",
+  background:"rgba(73, 73, 73, 0.75)",
+  transform:"translate(-50%,-50%)",
+  animation:"rippleAnim 0.8s ease-out",
+  pointerEvents:"none"
+}
 
 const expandedCardStyle: React.CSSProperties = {
-  width:"100%",marginTop:20,border:"1px solid #8b8b8b",
-  borderRadius:10,padding:20,display:"flex",
-  flexDirection:"column",gap:20
+  width:"100%",
+  marginTop:20,
+  border:"1px solid #8b8b8b",
+  borderRadius:10,
+  padding:20,
+  display:"flex",
+  flexDirection:"column",
+  gap:20
 }
 
 const inputRowStyle: React.CSSProperties = {
-  display:"flex",alignItems:"center",gap:8}
+  display:"flex",
+  alignItems:"center",
+  gap:8
+}
 
 const nameInputStyle: React.CSSProperties = {
-  flex:3,border:"1px solid #aaa",height:26, width: 80,
-  borderRadius:6,padding:"6px"
+  flex:3,
+  border:"1px solid #aaa",
+  height:26,
+  borderRadius:6,
+  padding:"6px"
 }
 
 const smallInputStyle: React.CSSProperties = {
-  width: 40,
-  height: 26,
-  border: "1px solid #aaa",
-  borderRadius: 6,
-  textAlign: "center"
+  width:40,
+  height:26,
+  border:"1px solid #aaa",
+  borderRadius:6,
+  textAlign:"center"
 }
 
 const iconButtonStyle: React.CSSProperties = {
-  border:"1px solid #ffffff",background:"transparent",
-  width:28,height:28,cursor:"pointer"
+  border:"1px solid #ffffff",
+  background:"transparent",
+  width:28,
+  height:28,
+  cursor:"pointer"
 }
 
 const exerciseRowStyle: React.CSSProperties = {
-  display:"flex",justifyContent:"space-between",alignItems:"center"
+  display:"flex",
+  justifyContent:"space-between",
+  alignItems:"center"
 }
 
-const clearButtonWrapperStyle: React.CSSProperties = {
-  width:420,display:"flex",justifyContent:"center",marginTop:10
+const editableInputStyle: React.CSSProperties = {
+  border: "none",
+  outline: "none",
+  fontFamily: "monospace",
+  fontSize: "inherit",
+  background: "transparent",
+  width: "100%"
 }
 
-const clearButtonStyle: React.CSSProperties = {
-  width:20,height:20,borderRadius:6,border:"1px solid #b8b8b8",
-  background:"white",cursor:"pointer",fontSize:10
+const confirmButtonStyle: React.CSSProperties = {
+
+  padding:"6px 14px",
+  border:"1px solid #ffffff",
+  borderRadius:6,
+  background:"white",
+  cursor:"pointer",
+  fontFamily:"monospace"
+
 }
 
-const planContainerStyle = (expanded: boolean): React.CSSProperties => ({
-  width: expanded ? 360 : 240,
-  transition: "all .3s ease",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center"
-})
-
-const planHeaderStyle = (): React.CSSProperties => ({
-  width: "100%",
-  padding: "10px 80px",
-  display: "flex",
-  justifyContent: "space-between",
-  cursor: "pointer"
-})
-
-const planExpandedCardStyle: React.CSSProperties = {
-  width: "100%",
-  marginTop: 10,
-  border: "1px solid #000",
+const floatingPanelStyle: React.CSSProperties = {
+  border: "1px solid #0000007a",
   borderRadius: 10,
   padding: 20,
-  display: "flex",
-  flexDirection: "column",
-  gap: 30
-}
-
-const planExerciseRowStyle: React.CSSProperties = {
-  display:"flex",justifyContent:"space-between"
-}
-
-const planRightColumnStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-end",
-  gap: 6
-}
-
-const planInputStyle: React.CSSProperties = {
-  width: 30,
-  marginLeft: 6,
-  textAlign: "center",
-  border: "1px solid #8b8b8bbd",
-  borderRadius: 6
+  width: 240,
+  animation: "panelFade 0.25s ease"
 }

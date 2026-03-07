@@ -12,8 +12,7 @@ export default function Progress() {
   const [selectedMemoryId, setSelectedMemoryId] =
     useState<string | null>(null)
 
-  const [statsOpen, setStatsOpen] = useState(false)
-
+ 
   /* =========================
      HISTORIAL ORDENADO
   ========================== */
@@ -108,7 +107,7 @@ export default function Progress() {
                 style={{
                   ...squareStyle,
                   background: isCompleted
-                    ? "#474747"
+                    ? "#000000"
                     : "#ffffff"
                 }}
               />
@@ -147,12 +146,12 @@ export default function Progress() {
                 ...memoryBoxStyle,
                 border:
                   selectedMemoryId === memory.id
-                    ? "2px solid black"
-                    : "1px solid #000"
+                    ? "1px solid #61616100"
+                    : "1px solid #61616100"
               }}
               onClick={() => {
                 setSelectedMemoryId(memory.id)
-                setStatsOpen(false)
+                
               }}
             >
               <MiniCircle memory={memory} />
@@ -184,17 +183,11 @@ export default function Progress() {
 
           {/* ================= BOTON STATS ================= */}
 
-          <div
-            style={statsToggleStyle}
-            onClick={() => setStatsOpen(!statsOpen)}
-          >
-            <span>Stats</span>
-            <span>{statsOpen ? "˄" : "˅"}</span>
-          </div>
+         
 
           {/* ================= PANEL STATS ================= */}
 
-          {statsOpen && (
+          
 
             <div style={statsBoxStyle}>
 
@@ -231,7 +224,7 @@ export default function Progress() {
 
             </div>
 
-          )}
+          
 
         </div>
 
@@ -281,7 +274,8 @@ function StrengthBar({
       <div
         style={{
           width: `${growthPercent}%`,
-          background: "#2f2fff",
+          background: "#001aff",
+          boxShadow: "0 0 25px rgba(47,47,255,0.45)",
           transition: "width 0.6s ease"
         }}
       />
@@ -342,7 +336,7 @@ function MiniCircle({ memory }: { memory: ProgressMemory }) {
           width: currentRadius * 2,
           height: currentRadius * 2,
           borderRadius: "50%",
-          background: "#31313100",
+          background: "#e4000000",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)"
@@ -429,19 +423,19 @@ const counterWrapperStyle: React.CSSProperties = {
 const memoryGridStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(3, 1fr)",
-  gap: 20,
-  marginTop: 60,
+  gap: 0,
+  marginTop: 70,
   justifyItems: "center"
 }
 
 const memoryBoxStyle: React.CSSProperties = {
-  padding: 15,
+  padding: 25,
   borderRadius: 8,
   cursor: "pointer"
 }
 
 const detailWrapperStyle: React.CSSProperties = {
-  marginTop: 60,
+  marginTop: 80,
   textAlign: "center"
 }
 
@@ -455,7 +449,7 @@ const statsToggleStyle: React.CSSProperties = {
 }
 
 const statsBoxStyle: React.CSSProperties = {
-  border: "1px solid #000",
+  border: "1px solid #00000000",
   borderRadius: 10,
   padding: 20,
   marginTop: 20,

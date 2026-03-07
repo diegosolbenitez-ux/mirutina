@@ -19,7 +19,7 @@ export default function App() {
         style={{
           width: "100%",
           maxWidth: 430,
-          padding: "60px 20px 80px 20px",
+          padding: "60px 0px 80px 0px",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",

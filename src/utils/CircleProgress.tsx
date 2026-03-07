@@ -44,9 +44,11 @@ export default function CircleProgress({
   /* DETECTAR OBJETIVO COMPLETADO */
   /* ============================= */
 
-  const goalReached =
-  objectiveVolume > 0 &&
-    accumulatedProgress + initialVolume >= objectiveVolume
+  const hasObjective = objectiveVolume > 0
+
+const goalReached =
+  hasObjective &&
+  accumulatedProgress + initialVolume >= objectiveVolume
 
   const [goalAnimation, setGoalAnimation] =
     useState(false)
@@ -74,7 +76,7 @@ export default function CircleProgress({
     : "transparent"
 
   const baselineColor = goalReached
-    ? "#2f2fff"
+    ? "#ffffff"
     : "#000000"
 
   return (
@@ -109,7 +111,10 @@ export default function CircleProgress({
           width: BASE_SIZE,
           height: BASE_SIZE,
           borderRadius: "50%",
-          background: "rgba(47, 47, 255, 0.16)",
+          boxShadow: "0 0 25px rgba(47,47,255,0.45)",
+          background: hasObjective
+  ? "#0000ff"
+  : "transparent",
           border: "1px dashed #000000",
           top: 0,
           left: 0,
@@ -129,7 +134,7 @@ export default function CircleProgress({
           height: BASE_SIZE,
           borderRadius: "50%",
           border: `1px solid ${baselineColor}`,
-          background: goalReached ? "#2f2fff" : "#2f2fff" ,
+          background: hasObjective ? "#ffffff" : "transparent",
           top: 0,
           left: 0,
           transform: `scale(${initialRatio})`,
@@ -147,7 +152,8 @@ export default function CircleProgress({
           width: BASE_SIZE,
           height: BASE_SIZE,
           borderRadius: "50%",
-          border: "0.5px solid #464646a9",
+          border: "1px solid #ffffff91",
+          background: "solid #ffffffcc",
           top: 0,
           left: 0,
           transform: `scale(${previousRatio})`,
@@ -176,22 +182,9 @@ export default function CircleProgress({
       )}
 
       <style>
-        {`
-        @keyframes pulseGoal {
-          0% {
-            transform: scale(0.9);
-            opacity: 0.8;
-          }
-          50% {
-            transform: scale(1.05);
-            opacity: 0.4;
-          }
-          100% {
-            transform: scale(1.1);
-            opacity: 0;
-          }
-        }
-        `}
+        
+        
+        
       </style>
 
     </div>

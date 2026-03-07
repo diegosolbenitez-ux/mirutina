@@ -84,7 +84,7 @@ export default function ExerciseHistory() {
     <div style={containerStyle}>
 
       <div style={titleStyle}>
-        Global
+        
       </div>
 
       <div style={statsBoxStyle}>
@@ -127,7 +127,7 @@ export default function ExerciseHistory() {
               Ciclos: {ex.cycles}
             </div>
 
-            <EvolutionChart
+            <CycleLine
               data={ex.progression}
             />
 
@@ -175,7 +175,7 @@ function StrengthBar({
       <div
         style={{
           width: `${growthPercent}%`,
-          background: "#2f2fff"
+          background: "#0000ff"
         }}
       />
 
@@ -185,45 +185,36 @@ function StrengthBar({
 
 }
 
-/* ================= EVOLUTION CHART ================= */
+/* ================= LINE GRAPH ================= */
 
-function EvolutionChart({
-  data
-}: {
-  data: number[]
-}) {
+function CycleLine({ data }: { data: number[] }) {
 
   if (data.length <= 1) return null
 
   const width = 260
-  const height = 80
+  const height = 70
 
   const max = Math.max(...data)
   const min = Math.min(...data)
 
-  const range = max - min || 1
+  const normalizeY = (value: number) => {
+
+    if (max === min) return height / 2
+
+    return height - ((value - min) / (max - min)) * height
+
+  }
 
   const stepX = width / (data.length - 1)
 
-  const points = data.map((value, i) => {
+  const points = data.map((v, i) => {
 
     const x = i * stepX
+    const y = normalizeY(v)
 
-    const normalized =
-      (value - min) / range
+    return `${x},${y}`
 
-    const y =
-      height - normalized * height
-
-    return { x, y }
-
-  })
-
-  const path = points
-    .map((p, i) =>
-      `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`
-    )
-    .join(" ")
+  }).join(" ")
 
   return (
 
@@ -233,24 +224,34 @@ function EvolutionChart({
       style={{ marginTop: 12 }}
     >
 
-      <path
-        d={path}
+      <polyline
         fill="none"
-        stroke="#2f2fff"
-        strokeWidth={2}
+        stroke="#0000ff"
+        strokeWidth="3"
+        points={points}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
 
-      {points.map((p, i) => (
+      {data.map((v, i) => {
 
-        <circle
-          key={i}
-          cx={p.x}
-          cy={p.y}
-          r={3}
-          fill="#2f2fff"
-        />
+        const x = i * stepX
+        const y = normalizeY(v)
 
-      ))}
+        return (
+
+          <circle
+            key={i}
+            cx={x}
+            cy={y}
+            r="3"
+            fill="#0000ff"
+            
+          />
+
+        )
+
+      })}
 
     </svg>
 
@@ -282,7 +283,7 @@ const titleStyle: React.CSSProperties = {
 
 const statsBoxStyle: React.CSSProperties = {
 
-  border: "1px solid #000",
+  border: "1px solid #00000000",
 
   borderRadius: 10,
 

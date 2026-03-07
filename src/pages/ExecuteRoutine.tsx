@@ -98,6 +98,10 @@ export default function ExecuteRoutine() {
   const previousProgress =
     accumulatedProgress - todayProgress
 
+    const goalCompleted =
+  objectiveVolume > 0 &&
+  accumulatedProgress + initialVolume >= objectiveVolume
+
   /* ============================= */
   /* GLOBAL PROGRESS SECTION */
   /* ============================= */
@@ -176,11 +180,18 @@ export default function ExecuteRoutine() {
       <div style={containerStyle}>
 
         <textarea
-          placeholder="Nota del día"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          style={textareaStyle}
-        />
+  placeholder={
+
+      goalCompleted
+      ? "¡Nuevo ciclo completado!"
+    : objectiveVolume === 0
+      ? "Para ver Progresos → Ingresa Pesos objetivo en Plan  "
+      : "Nota del día"
+  }
+  value={note}
+  onChange={(e) => setNote(e.target.value)}
+  style={textareaStyle}
+/>
 
         <button
           onClick={() => finalizeWorkout(note)}
@@ -255,6 +266,7 @@ export default function ExecuteRoutine() {
       ultimoCargado = set.weight
     }
   }
+  
 
   return (
     <div style={containerStyle}>
@@ -429,4 +441,4 @@ const startButtonStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center"
-} 
+}  
