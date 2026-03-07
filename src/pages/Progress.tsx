@@ -439,15 +439,6 @@ const detailWrapperStyle: React.CSSProperties = {
   textAlign: "center"
 }
 
-const statsToggleStyle: React.CSSProperties = {
-  marginTop: 30,
-  cursor: "pointer",
-  display: "flex",
-  justifyContent: "center",
-  gap: 10,
-  fontWeight: 600
-}
-
 const statsBoxStyle: React.CSSProperties = {
   border: "1px solid #00000000",
   borderRadius: 10,

@@ -732,15 +732,6 @@ const containerStyle: React.CSSProperties = {
   fontFamily: "monospace"
 }
 
-const libraryButtonStyle : React.CSSProperties = {display:"flex",gap:6,cursor:"pointer"}
-
-const dotStyle : React.CSSProperties = {
-  width:3,height:3,borderRadius:"50%",background:"#000000"
-}
-const libraryPanelStyle : React.CSSProperties = {
-  border:"1px solid #0000007a",borderRadius:10,padding:20,width:240
-}
-
 const libraryRowStyle : React.CSSProperties = {
   display:"flex",justifyContent:"space-between",marginBottom:8
 }
